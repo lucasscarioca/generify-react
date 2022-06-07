@@ -12,24 +12,15 @@ const AllSongs = () => {
   const navigate = useNavigate();
 
   const userId = authenticated ? currentUser.id : 1;
-  const [user, setUser] = useState({});
   const inputEl = useRef("");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
 
-  useEffect(() => {
-    axios.get(`http://localhost:8080/users/${userId}`)
-      .then(
-        (response) => {
-          setUser(response.data);
-        }
-      )
-  }, [userId]);
   const allSongsTemplate = [
     {
-      id: 21,
-      artist: "artista",
-      name: "eu sou o artista",
+      id: "",
+      artist: "",
+      name: "",
       file: ""
     }
   ];
@@ -38,23 +29,15 @@ const AllSongs = () => {
 
   useEffect(() => {
     if (authenticated) {
-      axios.get(`http://localhost:8080/playlists`)
+      axios.get(`http://localhost:8080/songs`)
         .then(
           (response) => {
-            const playlistSongs = []
-            for (const playlist in response.data) {
-              for (const song in response.data[playlist].songs) {
-                playlistSongs.push(response.data[playlist].songs[song]);
-              }
-            }
-            setallSongs(playlistSongs);
+            setallSongs(response.data);
           }
         )
+    } else {
+      navigate("/login");
     }
-  }, [authenticated]);
-
-  useEffect(() => {
-    if (!authenticated) navigate("/login");
   }, [authenticated, navigate]);
 
   const [markedToAdd, setMarkedToAdd] = useState([]);
@@ -87,7 +70,7 @@ const AllSongs = () => {
   useEffect(() => {
     for (let el in markedToAdd) {
       let element = document.getElementById(markedToAdd[el]);
-      if (element){
+      if (element) {
         element.style.backgroundColor = "#BD2823";
         element.style.color = "#10012b";
         element.textContent = "-";
@@ -101,11 +84,11 @@ const AllSongs = () => {
         <td>
           <button
             type="button"
-            id={allSongs.indexOf(p)}
-            onClick={() => AddSong(allSongs.indexOf(p))}
+            id={p.id}
+            onClick={() => AddSong(p.id)}
             style={{
-                backgroundColor: "#10012b",
-                color: "#e1aaff"
+              backgroundColor: "#10012b",
+              color: "#e1aaff"
             }}
           >+</button>
           <span style={{ padding: "1px" }}>{p.artist} - {p.name}</span>
@@ -117,31 +100,20 @@ const AllSongs = () => {
   const createPlaylist = () => {
     const playlistName = document.getElementById('PlaylistName').value;
     let personalSongs = []
-    markedToAdd.forEach((index) => {
-      personalSongs.push(allSongs[index]);
-    });
-
-    let playlistId = 1;
-    if (user.playlists.length) {
-      playlistId = user.playlists[user.playlists.length - 1].id + 1
+    for (let index in markedToAdd) {
+      const getSong = allSongs.find(song => song.id === markedToAdd[index]);
+      personalSongs.push(getSong);
     }
 
     const playlist = {
-      id: playlistId,
       name: playlistName,
       cover: "rock.jpg",
       about: "Melhores músicas do momento, aperte play e entre no clima!",
+      owner: userId,
       songs: personalSongs
     }
-    let playlists = user.playlists;
-    playlists.push(playlist);
-    const updatedUser = {
-      ...user,
-      playlists
-    }
-    axios.patch(`http://localhost:8080/users/${userId}`, updatedUser);
-    setUser(updatedUser);
 
+    axios.post(`http://localhost:8080/playlists`, playlist);
     navigate(`/users/${userId}/playlists/`)
   };
 

@@ -15,17 +15,19 @@ const PlaylistDetail = () => {
         name: "",
         cover: "",
         about: "",
-        songs: [
-            {
-                id: "",
-                artist: "",
-                name: "",
-                file: ""
-            }
-        ]
+        owner: "",
+        songs: []
+    };
+
+    const songsFormat = {
+        id: "",
+        artist: "",
+        name: "",
+        file: ""
     };
 
     const [playlist, setPlaylist] = useState(playlistFormat);
+    const [playlistSongs, setPlaylistSongs] = useState(songsFormat);
     const [currentSongIndex, setCurrentSongIndex] = useState(0);
     const [nextSongIndex, setNextSongIndex] = useState(currentSongIndex + 1);
 
@@ -34,23 +36,21 @@ const PlaylistDetail = () => {
     const [follow, setFollow] = useState(false);
 
     const handleFollow = () => {
-        const newUserPlaylists = [...currentUser.playlists, playlist];
-        const newUser = {
-            ...currentUser,
-            playlists: newUserPlaylists
+        const newPlaylists = [...currentUser.userPlaylists, playlist.id];
+        const newUserPlaylists = {
+            userPlaylists: newPlaylists
         }
-        axios.patch(`http://localhost:8080/users/${currentUser.id}`, newUser);
+        axios.put(`http://localhost:8080/users/${currentUser.id}`, newUserPlaylists);
         setFollow(true);
         updateUser();
     }
 
     const handleUnfollow = () => {
-        const newUserPlaylists = currentUser.playlists.filter((playlists) => playlists.id !== playlist.id && playlists.name !== playlist.id);
-        const newUser = {
-            ...currentUser,
-            playlists: newUserPlaylists
+        const filteredPlaylists = currentUser.playlists.filter((playlists) => playlists.id !== playlist.id && playlists.name !== playlist.id);
+        const newUserPlaylists = {
+            userPlaylists: filteredPlaylists
         }
-        axios.patch(`http://localhost:8080/users/${currentUser.id}`, newUser);
+        axios.put(`http://localhost:8080/users/${currentUser.id}`, newUserPlaylists);
         setFollow(false);
         updateUser();
     }
@@ -61,25 +61,29 @@ const PlaylistDetail = () => {
                 .then(
                     (response) => {
                         setPlaylist(response.data);
-                        if (currentUser.playlists.length > 0) {
-                            if (currentUser.playlists.some(data => data.id === response.data.id && data.name === response.data.name)) {
+                        if (currentUser.userPlaylists.length > 0) {
+                            if (currentUser.userPlaylists.some(id => id === response.data.id)) {
                                 setFollow(true);
                             }
                         }
                     }
                 )
+            axios.get(`http://localhost:8080/playlists/${id}/songs`)
+                .then(
+                    (response) => {
+                        setPlaylistSongs(response.data);
+                    }
+                )
+        } else {
+            navigate("/login");
         }
-    }, [id, authenticated, currentUser]);
+    }, [id, authenticated, currentUser, navigate]);
 
-    useEffect(() => {
-        if (!authenticated) navigate("/login");
-    }, [authenticated, navigate]);
-
-    const renderSongs = playlist.songs.map((p) => {
+    const renderSongs = playlistSongs.map((p) => {
         return (
             <tr key={p.id}>
                 <td>
-                    <Button variant="clear" className="w-100" onClick={() => { setCurrentSongIndex(playlist.songs.indexOf(p)) }}>
+                    <Button variant="clear" className="w-100" onClick={() => { setCurrentSongIndex(playlistSongs.indexOf(p)) }}>
                         {p.artist} - {p.name}
                     </Button>
                 </td>
@@ -90,13 +94,13 @@ const PlaylistDetail = () => {
 
     useEffect(() => {
         setNextSongIndex(() => {
-            if (currentSongIndex + 1 > playlist.songs.length - 1) {
+            if (currentSongIndex + 1 > playlistSongs.length - 1) {
                 return 0;
             } else {
                 return currentSongIndex + 1;
             }
         });
-    }, [currentSongIndex, playlist]);
+    }, [currentSongIndex, playlistSongs]);
 
     return (
         <div className="pg-faq container" >
@@ -109,8 +113,8 @@ const PlaylistDetail = () => {
                         : <Button className="ml-5" variant="primary" onClick={handleFollow}>Salvar</Button>}
                 </span>
                 <p className="text-center text-muted">{playlist.about}</p>
-                <p className="text-center font-weight-bold">Tocando: {playlist.songs[currentSongIndex].artist} - {playlist.songs[currentSongIndex].name}</p>
-                <Player songs={playlist.songs} currentSongIndex={currentSongIndex} setCurrentSongIndex={setCurrentSongIndex} nextSongIndex={nextSongIndex} />
+                <p className="text-center font-weight-bold">Tocando: {playlistSongs[currentSongIndex].artist} - {playlistSongs[currentSongIndex].name}</p>
+                <Player songs={playlistSongs} currentSongIndex={currentSongIndex} setCurrentSongIndex={setCurrentSongIndex} nextSongIndex={nextSongIndex} />
 
                 <Container>
                     <Row md={2} className="justify-content-md-center">

@@ -15,83 +15,81 @@ const MyJamDetail = () => {
     name: "",
     cover: "",
     about: "",
-    songs: [
-      {
-        id: "",
-        artist: "",
-        name: "",
-        file: ""
-      }
-    ]
+    owner: "",
+    songs: []
   };
+  const songsFormat = {
+    id: "",
+    artist: "",
+    name: "",
+    file: ""
+  }
 
   const [playlist, setPlaylist] = useState(playlistFormat);
+  const [playlistSongs, setPlaylistSongs] = useState(songsFormat);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [nextSongIndex, setNextSongIndex] = useState(currentSongIndex + 1);
 
-  const { authenticated, currentUser } = useContext(Context);
+  const { authenticated, currentUser, updateUser } = useContext(Context);
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [user, setUser] = useState({});
+  const [searchParams] = useSearchParams();
 
   let pId = searchParams.get('pname');
 
   useEffect(() => {
     if (authenticated) {
-      axios.get(`http://localhost:8080/users/${currentUser.id}`)
+      axios.get(`http://localhost:8080/playlists/${pId}`)
         .then(
           (response) => {
-            setUser(response.data)
-            setPlaylist(response.data.playlists[pId - 1]);
+            setPlaylist(response.data);
+            axios.get(`http://localhost:8080/playlists/${pId}/songs`)
+              .then(
+                (response) => {
+                  setPlaylistSongs(response.data);
+                }
+              )
           }
         )
+    } else {
+      navigate("/login");
     }
-  }, [id, authenticated]);
-
-  useEffect(() => {
-    if (!authenticated) navigate("/login");
-  }, [authenticated, navigate]);
+  }, [id, authenticated, navigate]);
 
   function removeSong(index) {
-    let updated_songs = playlist.songs;
-    updated_songs.splice(index, 1);
+    let updatedSongs = [...playlistSongs];
+    let currentPlaylist = { ...playlist };
+    let removedSong = updatedSongs.splice(index, 1);
+    currentPlaylist.songs = playlist.songs.filter(id => id !== removedSong[0].id);
 
-    let playlists = user.playlists;
-    if(updated_songs == 0) {
-      playlists.splice(pId - 1, 1)
-    } else {
-      playlists[pId - 1].songs = updated_songs;
-    }
-
-    const updatedUser = {
-      ...user,
-      playlists
-    }
-
-    if(updated_songs ==  0) {
-      axios.patch(`http://localhost:8080/users/${currentUser.id}`, updatedUser);
-      setUser(updatedUser);
+    if (currentPlaylist.songs == 0) {
+      setPlaylist(playlistFormat);
+      axios.delete(`http://localhost:8080/playlists/${pId}`);
+      let userPlaylists = {
+        userPlaylists: currentUser.userPlaylists.filter(id => id !== pId)
+      }
+      axios.put(`http://localhost:8080/users/${currentUser.id}`, userPlaylists);
+      updateUser();
       navigate(`/users/${currentUser.id}/playlists/`);
     } else {
-      axios.patch(`http://localhost:8080/users/${currentUser.id}`, updatedUser);
-      setUser(updatedUser);
+      setPlaylist(currentPlaylist);
+      axios.put(`http://localhost:8080/playlists/${pId}`, currentPlaylist);
     }
   }
 
-  const renderSongs = playlist.songs.map((p) => {
+  const renderSongs = playlistSongs.map((p) => {
     return (
       <tr key={p.id}>
         <td>
           <Row>
             <Col md={1}>
-              <Button variant="danger" onClick={() => { removeSong(playlist.songs.indexOf(p)) }}>-</Button>
+              <Button variant="danger" onClick={() => { removeSong(playlistSongs.indexOf(p)) }}>-</Button>
             </Col>
             <Col md={11}>
-              <Button variant="clear" className="w-100" onClick={() => { setCurrentSongIndex(playlist.songs.indexOf(p)) }}>
+              <Button variant="clear" className="w-100" onClick={() => { setCurrentSongIndex(playlistSongs.indexOf(p)) }}>
                 {p.artist} - {p.name}
               </Button>
             </Col>
-            </Row>
+          </Row>
         </td>
       </tr>
     )
@@ -114,8 +112,8 @@ const MyJamDetail = () => {
 
         <span style={{ textAlign: 'center', paddingBottom: '20px' }}><b className="main-font">Generi - {playlist.name}</b></span>
         <p className="text-center text-muted">{playlist.about}</p>
-        <p className="text-center font-weight-bold">Tocando: {playlist.songs[currentSongIndex].artist} - {playlist.songs[currentSongIndex].name}</p>
-        <Player songs={playlist.songs} currentSongIndex={currentSongIndex} setCurrentSongIndex={setCurrentSongIndex} nextSongIndex={nextSongIndex} />
+        <p className="text-center font-weight-bold">Tocando: {playlistSongs[currentSongIndex].artist} - {playlistSongs[currentSongIndex].name}</p>
+        <Player songs={playlistSongs} currentSongIndex={currentSongIndex} setCurrentSongIndex={setCurrentSongIndex} nextSongIndex={nextSongIndex} />
 
         <Container>
           <Row md={2} className="justify-content-md-center">
@@ -126,6 +124,17 @@ const MyJamDetail = () => {
               <Table borderless hover size="lg" style={{ borderRadius: "10px", backgroundColor: "#b27cde", color: "#491d6c", fontWeight: "bold" }}>
                 <tbody>
                   {renderSongs}
+                  <tr>
+                    <td>
+                      <Row>
+                        <Col md={1}>
+                          <Button onClick={() => { navigate(`/users/${currentUser.id}/edit_playlist/?playlist_id=${pId}`) }}>+</Button>
+                        </Col>
+                        <Col md={11}>
+                        </Col>
+                      </Row>
+                    </td>
+                  </tr>
                 </tbody>
               </Table>
             </Col>

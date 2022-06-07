@@ -13,10 +13,6 @@ const PlaylistList = () => {
     const [playlists, setPlaylists] = useState([]);
 
     useEffect(() => {
-        if (!authenticated) navigate("/login");
-    }, [authenticated, navigate]);
-
-    useEffect(() => {
         if (authenticated) {
             axios.get("http://localhost:8080/playlists")
                 .then(
@@ -24,8 +20,10 @@ const PlaylistList = () => {
                         setPlaylists(response.data);
                     }
                 )
+        } else {
+            navigate("/login");
         }
-    }, [authenticated]);
+    }, [authenticated, navigate]);
 
     const dados = playlists.map
         ((p) => {

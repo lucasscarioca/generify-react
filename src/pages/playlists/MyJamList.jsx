@@ -15,35 +15,28 @@ const MyJamList = () => {
 
     const userId = currentUser.id;
 
-    const new_plyalist = { // Playlist values structure
-        id: -1,
-        name: "qwerty",
+    const new_playlist = { // Playlist values structure
+        id: "",
+        name: "",
         cover: "",
         about: "",
-        songs: [
-            {
-                id: "",
-                artist: "",
-                name: "",
-                file: ""
-            }
-        ]
+        owner: "",
+        songs: []
     };
-    useEffect(() => {
-        if (!authenticated) navigate("/login");
-    }, [authenticated, navigate]);
 
     useEffect(() => {
         if (authenticated) {
-            axios.get(`http://localhost:8080/users/${userId}`)
+            axios.get(`http://localhost:8080/users/${userId}/playlists`)
                 .then(
                     (response) => {
-                        response.data.playlists.push(new_plyalist);
-                        setPlaylists(response.data.playlists);
+                        response.data.push(new_playlist);
+                        setPlaylists(response.data);
                     }
                 )
+        } else {
+            navigate("/login");
         }
-    }, [authenticated]);
+    }, [authenticated, navigate]);
 
     const dados = playlists.map((p) => {
         if (p.id != -1) {
