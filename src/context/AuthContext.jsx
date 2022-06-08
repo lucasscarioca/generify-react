@@ -21,7 +21,7 @@ function AuthProvider({ children }) {   // Component for context validations
             if (!values.password) errors.password = "Senha é obrigatória!";
             return errors;
         }
-        if (!valid) {
+        if (valid == "error") {
             errors.username = "Usuário não encontrado!";
             errors.password = "Senha incorreta!";
             return errors;
@@ -30,19 +30,20 @@ function AuthProvider({ children }) {   // Component for context validations
 
     async function handleLogin(userLogin) {   // Search login values in users array
         let users;
-        await axios.get(`http://localhost:8080/users`)
+        let status;
+        await axios.post(`http://localhost:8080/users/validate`, userLogin)
             .then(
                 (response) => {
-                    users = response.data;
+                    status = response.data.status;
+                    users = response.data.data;
                 }
             )
-        const userCheck = users.some(user => user.username === userLogin.username && user.password === userLogin.password);
-        if (userCheck) {
+        if (status == "success") {
             setAuthenticated(true);
             setAlertMsg(`Login realizado, bem-vindo ${userLogin.username}!`);
-            setCurrentUser(users.find((user) => (user.username === userLogin.username && user.password === userLogin.password)))
+            setCurrentUser(users);
         }
-        setLoginErrors(validateLogin(userLogin, userCheck));
+        setLoginErrors(validateLogin(userLogin, status));
     }
 
     function handleLogout() {
@@ -81,15 +82,13 @@ function AuthProvider({ children }) {   // Component for context validations
                 email,
                 password,
                 birthDate,
-                playlists: [],
-                createdAt: new Date()
+                userPlaylists: []
             }
             setAlertMsg(`Conta criada, bem-vindo ${user.username}!`);
             setAuthenticated(true);
             // console.log("Usuário criado!");
             // console.log(users);
             axios.post(`http://localhost:8080/users`, user).then(({ data }) => setCurrentUser(data));;
-            handleLogin(user);
         }
         setCreateErrors({})
     }
@@ -129,13 +128,12 @@ function AuthProvider({ children }) {   // Component for context validations
     function updateUserData({ username, email, birthDate }) {
         if (Object.keys(updateErrors).length === 0) {
             const updatedUser = {
-                ...currentUser,
                 username,
                 email,
                 birthDate
             }
-            axios.patch(`http://localhost:8080/users/${currentUser.id}`, updatedUser);
-            setCurrentUser(updatedUser);
+            axios.put(`http://localhost:8080/users/${currentUser._id}`, updatedUser);
+            setCurrentUser({ ...currentUser, username, email, birthDate });
         }
         setUpdateErrors({});
     }
@@ -143,11 +141,10 @@ function AuthProvider({ children }) {   // Component for context validations
     function updatePassword({ password }) {
         if (Object.keys(updateErrors).length === 0) {
             const updatedUser = {
-                ...currentUser,
                 password
             }
-            axios.patch(`http://localhost:8080/users/${currentUser.id}`, updatedUser);
-            setCurrentUser(updatedUser);
+            axios.put(`http://localhost:8080/users/${currentUser._id}`, updatedUser);
+            setCurrentUser({ ...currentUser, password });
         }
         setUpdateErrors({});
     }
@@ -157,12 +154,12 @@ function AuthProvider({ children }) {   // Component for context validations
     }
 
     function deleteUser() {
-        axios.delete(`http://localhost:8080/users/${currentUser.id}`);
+        axios.delete(`http://localhost:8080/users/${currentUser._id}`);
         handleLogout();
     }
 
     function updateUser() {
-        axios.get(`http://localhost:8080/users/${currentUser.id}`)
+        axios.get(`http://localhost:8080/users/${currentUser._id}`)
             .then(
                 (response) => {
                     setCurrentUser(response.data);

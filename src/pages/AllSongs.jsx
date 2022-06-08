@@ -11,7 +11,7 @@ const AllSongs = () => {
   const { authenticated, currentUser } = useContext(Context);
   const navigate = useNavigate();
 
-  const userId = authenticated ? currentUser.id : 1;
+  const userId = authenticated ? currentUser._id : 1;
   const inputEl = useRef("");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);

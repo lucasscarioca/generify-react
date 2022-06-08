@@ -20,7 +20,7 @@ const EditPlaylist = () => {
     let playlist_id = searchParams.get('playlist_id');
 
     const playlistFormat = { // Playlist values structure
-        id: "",
+        _id: "",
         name: "",
         cover: "",
         about: "",
@@ -30,7 +30,7 @@ const EditPlaylist = () => {
 
     const allSongsTemplate = [
         {
-            id: "",
+            _id: "",
             artist: "",
             name: "",
             file: ""
@@ -47,7 +47,7 @@ const EditPlaylist = () => {
                     (response) => {
                         const playlistSongs = response.data;
                         for (let i in playlistSongs) {
-                            AddSong(playlistSongs[i].id);
+                            AddSong(playlistSongs[i]._id);
                         }
                     }
                 )
@@ -112,12 +112,12 @@ const EditPlaylist = () => {
 
     const songsArray = allSongs.map((p) => {
         return (
-            <tr key={p.id}>
+            <tr key={p._id}>
                 <td>
                     <button
                         type="button"
-                        id={p.id}
-                        onClick={() => AddSong(p.id)}
+                        id={p._id}
+                        onClick={() => AddSong(p._id)}
                         style={{
                             backgroundColor: "#10012b",
                             color: "#e1aaff"

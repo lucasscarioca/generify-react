@@ -13,7 +13,7 @@ const MyJamList = () => {
     const navigate = useNavigate();
     const [playlists, setPlaylists] = useState([]);
 
-    const userId = currentUser.id;
+    const userId = currentUser._id;
 
     const new_playlist = { // Playlist values structure
         id: "",

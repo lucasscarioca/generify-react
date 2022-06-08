@@ -40,7 +40,7 @@ const PlaylistDetail = () => {
         const newUserPlaylists = {
             userPlaylists: newPlaylists
         }
-        axios.put(`http://localhost:8080/users/${currentUser.id}`, newUserPlaylists);
+        axios.put(`http://localhost:8080/users/${currentUser._id}`, newUserPlaylists);
         setFollow(true);
         updateUser();
     }
@@ -50,7 +50,7 @@ const PlaylistDetail = () => {
         const newUserPlaylists = {
             userPlaylists: filteredPlaylists
         }
-        axios.put(`http://localhost:8080/users/${currentUser.id}`, newUserPlaylists);
+        axios.put(`http://localhost:8080/users/${currentUser._id}`, newUserPlaylists);
         setFollow(false);
         updateUser();
     }

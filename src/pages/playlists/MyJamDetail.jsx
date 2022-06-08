@@ -11,7 +11,7 @@ const MyJamDetail = () => {
   const { id } = useParams();
 
   const playlistFormat = { // Playlist values structure
-    id: "",
+    _id: "",
     name: "",
     cover: "",
     about: "",
@@ -19,7 +19,7 @@ const MyJamDetail = () => {
     songs: []
   };
   const songsFormat = {
-    id: "",
+    _id: "",
     artist: "",
     name: "",
     file: ""
@@ -59,7 +59,7 @@ const MyJamDetail = () => {
     let updatedSongs = [...playlistSongs];
     let currentPlaylist = { ...playlist };
     let removedSong = updatedSongs.splice(index, 1);
-    currentPlaylist.songs = playlist.songs.filter(id => id !== removedSong[0].id);
+    currentPlaylist.songs = playlist.songs.filter(id => id !== removedSong[0]._id);
 
     if (currentPlaylist.songs == 0) {
       setPlaylist(playlistFormat);
@@ -67,9 +67,9 @@ const MyJamDetail = () => {
       let userPlaylists = {
         userPlaylists: currentUser.userPlaylists.filter(id => id !== pId)
       }
-      axios.put(`http://localhost:8080/users/${currentUser.id}`, userPlaylists);
+      axios.put(`http://localhost:8080/users/${currentUser._id}`, userPlaylists);
       updateUser();
-      navigate(`/users/${currentUser.id}/playlists/`);
+      navigate(`/users/${currentUser._id}/playlists/`);
     } else {
       setPlaylist(currentPlaylist);
       axios.put(`http://localhost:8080/playlists/${pId}`, currentPlaylist);
@@ -78,7 +78,7 @@ const MyJamDetail = () => {
 
   const renderSongs = playlistSongs.map((p) => {
     return (
-      <tr key={p.id}>
+      <tr key={p._id}>
         <td>
           <Row>
             <Col md={1}>
@@ -128,7 +128,7 @@ const MyJamDetail = () => {
                     <td>
                       <Row>
                         <Col md={1}>
-                          <Button onClick={() => { navigate(`/users/${currentUser.id}/edit_playlist/?playlist_id=${pId}`) }}>+</Button>
+                          <Button onClick={() => { navigate(`/users/${currentUser._id}/edit_playlist/?playlist_id=${pId}`) }}>+</Button>
                         </Col>
                         <Col md={11}>
                         </Col>

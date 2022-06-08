@@ -7,7 +7,16 @@ import { useNavigate } from 'react-router-dom';
 
 export function Profile() {
 
-    const { authenticated, currentUser, updateUserData, updatePassword, checkUpdateErrors, updateErrors, deleteUser } = useContext(Context);
+    const { authenticated, currentUser, updateUserData, updatePassword, checkUpdateErrors, updateErrors, deleteUser, updateUser } = useContext(Context);
+    const navigate = useNavigate();
+    updateUser();
+    useEffect(() => {
+        if (authenticated) {
+            updateUser()
+        } else {
+            navigate("/login");
+        }
+    }, [authenticated, navigate]);
 
     const userValues = { // User values structure
         username: currentUser.username,
@@ -20,7 +29,6 @@ export function Profile() {
         passwordCheck: ""
     };
 
-    const navigate = useNavigate();
     const [newUserData, setNewUserData] = useState(userValues);
     const [newUserPassword, setNewUserPassword] = useState(passwordValues);
     const [updateToast, setUpdateToast] = useState(false);
@@ -75,9 +83,7 @@ export function Profile() {
         }
     }, [updateErrors, updatePassword, updateUserData, newUserData, newUserPassword, isSubmitUser, isSubmitPassword, setIsSubmitPassword, setIsSubmitUser, setUpdateToast]);
 
-    useEffect(() => {
-        if (!authenticated) navigate("/login");
-    }, [authenticated, navigate]);
+
 
     return (
         <div className="pg-form container">

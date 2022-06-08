@@ -36,7 +36,7 @@ const Navbar = () => {
                                 </NavLink>
                             </li>
                             <li className="nav-item">
-                                <NavLink className="nav-link" to={currentUser ? `/users/${currentUser.id}/playlists` : `/playlists`} >
+                                <NavLink className="nav-link" to={currentUser ? `/users/${currentUser._id}/playlists` : `/playlists`} >
                                     MyJam
                                 </NavLink>
                             </li>
